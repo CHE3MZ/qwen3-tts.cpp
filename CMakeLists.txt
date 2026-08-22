@@ -253,12 +253,32 @@ target_link_libraries(qwen3tts_shared PRIVATE
     qwen3_tts
 )
 
+# miniaudio-backed blocking playback (CLI --speak)
+add_library(audio_player STATIC
+    src/audio_player.cpp
+)
+target_include_directories(audio_player PRIVATE ${CMAKE_SOURCE_DIR}/lib/miniaudio)
+if(APPLE)
+    target_link_libraries(audio_player PUBLIC
+        "-framework CoreFoundation"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AudioUnit"
+    )
+elseif(WIN32)
+    target_link_libraries(audio_player PUBLIC ole32)
+endif()
+
 # CLI executable
 add_executable(qwen3-tts-cli
     src/main.cpp
 )
+target_include_directories(qwen3-tts-cli PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
 target_link_libraries(qwen3-tts-cli PRIVATE
     qwen3_tts
+    audio_player
 )
 
 # Test executable for tokenizer

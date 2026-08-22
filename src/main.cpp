@@ -1,4 +1,5 @@
 #include "qwen3_tts.h"
+#include "audio_player.h"
 
 #include <cstdio>
 #include <cstring>
@@ -16,6 +17,8 @@ static void print_usage(const char * prog) {
     fprintf(stderr, "                                Useful for comparing f16-f16 vs f16-f32 Mimi quality.\n");
     fprintf(stderr, "  -t, --text <text>              Text to synthesize (required for synthesis)\n");
     fprintf(stderr, "  -o, --output <file>            Output WAV file (default: output.wav)\n");
+    fprintf(stderr, "  -s, --speak                    Play audio through speakers instead of saving\n");
+    fprintf(stderr, "                                 (pass -o as well to do both)\n");
     fprintf(stderr, "  --output-rate <hz>             Resample output to this rate (e.g. 48000).\n");
     fprintf(stderr, "                                 Default is native 24000 Hz. 48000 is 2x upsample.\n");
     fprintf(stderr, "                                 NOTE: upsampling does not improve audio quality.\n");
@@ -168,6 +171,8 @@ static int do_synthesize(qwen3_tts::Qwen3TTS & tts,
                           const std::string & embedding_out_path,
                           qwen3_tts::tts_params params,
                           bool quiet,
+                          bool speak,
+                          bool output_explicit,
                           int32_t output_rate = 0) {
 
     // Propagate ICL mode
@@ -244,16 +249,29 @@ static int do_synthesize(qwen3_tts::Qwen3TTS & tts,
             fprintf(stderr, "Resampled: %d Hz -> %d Hz\n", result.sample_rate, output_rate);
     }
 
-    if (!qwen3_tts::save_audio_file(output_file, final_audio, final_rate)) {
-        fprintf(stderr, "Error: failed to save %s\n", output_file.c_str());
-        return 1;
+    if (speak) {
+        if (!quiet)
+            fprintf(stderr, "Playing: %.2f s @ %d Hz...\n",
+                    (float)final_audio.size() / (float)final_rate, final_rate);
+        if (!qwen3_tts::play_audio_samples(final_audio.data(),
+                                           (int32_t)final_audio.size(), final_rate)) {
+            fprintf(stderr, "Error: audio playback failed\n");
+            return 1;
+        }
     }
 
-    if (!quiet) {
-        fprintf(stderr, "Saved: %s (%.2f s @ %d Hz)\n",
-                output_file.c_str(),
-                (float)final_audio.size() / (float)final_rate,
-                final_rate);
+    if (!speak || output_explicit) {
+        if (!qwen3_tts::save_audio_file(output_file, final_audio, final_rate)) {
+            fprintf(stderr, "Error: failed to save %s\n", output_file.c_str());
+            return 1;
+        }
+
+        if (!quiet) {
+            fprintf(stderr, "Saved: %s (%.2f s @ %d Hz)\n",
+                    output_file.c_str(),
+                    (float)final_audio.size() / (float)final_rate,
+                    final_rate);
+        }
     }
 
     if (!quiet && params.print_timing) {
@@ -436,6 +454,8 @@ int main(int argc, char ** argv) {
     bool list_speakers  = false;
     bool list_languages = false;
     bool server_mode    = false;
+    bool speak          = false;
+    bool output_explicit = false;
     int32_t output_rate = 0;  // 0 = native 24000 Hz, no resampling
 
     qwen3_tts::tts_params params;
@@ -461,7 +481,8 @@ int main(int argc, char ** argv) {
         else if (arg == "-m" || arg == "--model")           { NEXT_ARG(model_dir); }
         else if (arg == "--tokenizer")                      { NEXT_ARG(tokenizer_path); }
         else if (arg == "-t" || arg == "--text")            { NEXT_ARG(text); }
-        else if (arg == "-o" || arg == "--output")          { NEXT_ARG(output_file); }
+        else if (arg == "-o" || arg == "--output")          { NEXT_ARG(output_file); output_explicit = true; }
+        else if (arg == "-s" || arg == "--speak")           { speak = true; }
         else if (arg == "-r" || arg == "--reference")       { NEXT_ARG(reference_audio); }
         else if (arg == "--ref-text")                       { NEXT_ARG(ref_text); }
         else if (arg == "--embedding-in")                   { NEXT_ARG(embedding_in); }
@@ -579,5 +600,5 @@ int main(int argc, char ** argv) {
 
     return do_synthesize(tts, text, output_file, reference_audio, ref_text,
                          embedding_in, embedding_out, params, /*quiet=*/false,
-                         output_rate);
+                         speak, output_explicit, output_rate);
 }
