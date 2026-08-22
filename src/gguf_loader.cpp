@@ -54,12 +54,18 @@ ggml_backend_t init_preferred_backend(const char * component_name, std::string *
         return shared.backend;
     }
 
-    ggml_backend_t backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_IGPU, nullptr);
-    if (!backend) {
-        backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU, nullptr);
-    }
-    if (!backend) {
-        backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_ACCEL, nullptr);
+    // Debug escape hatch: force the CPU backend even when a GPU is present.
+    const char * force_cpu = getenv("QWEN3_TTS_FORCE_CPU");
+
+    ggml_backend_t backend = nullptr;
+    if (!force_cpu || force_cpu[0] != '1') {
+        backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_IGPU, nullptr);
+        if (!backend) {
+            backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU, nullptr);
+        }
+        if (!backend) {
+            backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_ACCEL, nullptr);
+        }
     }
     if (!backend) {
         backend = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);

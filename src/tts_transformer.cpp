@@ -1017,12 +1017,22 @@ bool TTSTransformer::init_kv_cache(int32_t n_ctx, int32_t n_batch) {
         error_msg_ = "Failed to allocate KV cache buffer";
         return false;
     }
+    // Zero the KV cache: Metal kernels may read past the logical KV length
+    // (padded flash-attention variants), and recycled buffer memory can hold
+    // garbage that poisons attention with NaN. Deterministic zeros are safe.
+    ggml_backend_buffer_clear(state_.cache.buffer, 0);
     
     return true;
 }
 
 void TTSTransformer::clear_kv_cache() {
     state_.cache.n_used = 0;
+    // Scrub stale K/V (including any NaN from a previously poisoned session):
+    // padded flash-attention reads can touch beyond the logical length, so
+    // the buffer must hold deterministic zeros at every generation start.
+    if (state_.cache.buffer) {
+        ggml_backend_buffer_clear(state_.cache.buffer, 0);
+    }
 }
 
 void TTSTransformer::set_n_threads(int32_t n_threads) {
@@ -1116,12 +1126,18 @@ bool TTSTransformer::init_code_pred_kv_cache(int32_t n_ctx, int32_t n_batch) {
         error_msg_ = "Failed to allocate code predictor KV cache buffer";
         return false;
     }
+    // Same reasoning as the talker KV cache: deterministic zeros instead of
+    // recycled buffer garbage that padded kernels may read.
+    ggml_backend_buffer_clear(state_.code_pred_cache.buffer, 0);
     
     return true;
 }
 
 void TTSTransformer::clear_code_pred_kv_cache() {
     state_.code_pred_cache.n_used = 0;
+    if (state_.code_pred_cache.buffer) {
+        ggml_backend_buffer_clear(state_.code_pred_cache.buffer, 0);
+    }
 }
 
 bool TTSTransformer::lookup_embedding_rows(struct ggml_tensor * embedding, const int32_t * token_ids,
