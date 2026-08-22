@@ -397,6 +397,18 @@ int32_t qwen3_tts_resample(const float * input, int32_t n_input,
                              int32_t input_rate, int32_t output_rate,
                              float * output_out, int32_t max_output);
 
+/* Play interleaved float32 mono PCM through the default output device
+ * (miniaudio; CoreAudio on macOS, WASAPI on Windows, ALSA on Linux).
+ * Blocks until playback finishes. Intended for quick previews from
+ * language bindings — production apps usually prefer their own audio stack.
+ *
+ * input:       float32 PCM samples
+ * n_samples:   number of samples (mono)
+ * sample_rate: playback rate (use the rate from Qwen3TtsResult)
+ * Returns 1=ok, 0=fail.                                                */
+int32_t qwen3_tts_play(const float * input, int32_t n_samples,
+                       int32_t sample_rate);
+
 /* -------------------------------------------------------------------
  * Configuration
  * ------------------------------------------------------------------- */

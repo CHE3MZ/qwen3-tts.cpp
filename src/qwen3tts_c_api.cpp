@@ -1,6 +1,7 @@
 /* qwen3tts_c_api.cpp — C API wrapper for Go/Nim/Python FFI. */
 #include "qwen3_tts.h"
 #include "qwen3tts_c_api.h"
+#include "audio_player.h"
 
 #ifdef __APPLE__
 #include <objc/objc.h>
@@ -568,6 +569,14 @@ int32_t qwen3_tts_resample(const float * input, int32_t n_input,
     int32_t n = (int32_t)std::min((size_t)max_output, resampled.size());
     std::memcpy(output_out, resampled.data(), n * sizeof(float));
     return n;
+}
+
+// ---- playback utility ---------------------------------------------------------
+
+int32_t qwen3_tts_play(const float * input, int32_t n_samples,
+                       int32_t sample_rate) {
+    if (!input || n_samples <= 0 || sample_rate <= 0) return 0;
+    return qwen3_tts::play_audio_samples(input, n_samples, sample_rate) ? 1 : 0;
 }
 
 // ---- logits callback --------------------------------------------------------

@@ -251,6 +251,7 @@ target_include_directories(qwen3tts_shared PUBLIC
 )
 target_link_libraries(qwen3tts_shared PRIVATE
     qwen3_tts
+    audio_player
 )
 
 # miniaudio-backed blocking playback (CLI --speak)
