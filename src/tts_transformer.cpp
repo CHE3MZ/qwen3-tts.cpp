@@ -1188,6 +1188,7 @@ bool TTSTransformer::lookup_embedding_rows(struct ggml_tensor * embedding, const
         ggml_free(ctx0);
         return false;
     }
+    ggml_backend_synchronize(state_.backend);
 
     struct ggml_tensor * out = ggml_graph_get_tensor(gf, output_name);
     if (!out) {
@@ -1298,6 +1299,7 @@ bool TTSTransformer::project_text_tokens(const int32_t * text_tokens, int32_t n_
         ggml_free(ctx0);
         return false;
     }
+    ggml_backend_synchronize(state_.backend);
 
     struct ggml_tensor * out = ggml_graph_get_tensor(gf, "text_proj_out");
     if (!out) {
@@ -2326,6 +2328,7 @@ bool TTSTransformer::forward_prefill(const float * prefill_embd, int32_t n_token
         ggml_backend_sched_reset(state_.sched);
         return false;
     }
+    ggml_backend_synchronize(state_.backend);
 #ifdef QWEN3_TTS_TIMING
     t1 = clk::now();
     if (timing_) timing_->t_prefill_compute_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
@@ -2458,6 +2461,7 @@ bool TTSTransformer::forward_step(const float * step_embd, int32_t n_past,
         ggml_backend_sched_reset(state_.sched);
         return false;
     }
+    ggml_backend_synchronize(state_.backend);
 #ifdef QWEN3_TTS_TIMING
     t1 = clk::now();
     if (timing_) timing_->t_talker_compute_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
@@ -2793,6 +2797,7 @@ bool TTSTransformer::predict_codes_autoregressive(const float * hidden, int32_t 
             ggml_backend_sched_reset(state_.sched);
             return false;
         }
+    ggml_backend_synchronize(state_.backend);
 #ifdef QWEN3_TTS_TIMING
         t1 = clk::now();
         if (timing_) timing_->t_code_pred_compute_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
@@ -2881,6 +2886,7 @@ bool TTSTransformer::predict_codes_autoregressive(const float * hidden, int32_t 
             ggml_backend_sched_reset(state_.sched);
             return false;
         }
+    ggml_backend_synchronize(state_.backend);
 #ifdef QWEN3_TTS_TIMING
         t1 = clk::now();
         if (timing_) timing_->t_code_pred_compute_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
