@@ -1,5 +1,21 @@
 #include "qwen3_tts.h"
 #include "audio_player.h"
+#include "ggml.h"
+
+// ---------------------------------------------------------------------------
+// GGML log filter — GGML's Metal backend logs every shader-pipeline
+// compilation at DEBUG level, which floods the console on first use.
+// Keep warnings and errors visible; drop everything below that.
+// ---------------------------------------------------------------------------
+static void ggml_log_filter(enum ggml_log_level level, const char * text, void * /*user*/) {
+    static bool show_cont = false;
+    if (level == GGML_LOG_LEVEL_CONT) {   // continuation of a previous message
+        if (show_cont) fputs(text, stderr);
+        return;
+    }
+    show_cont = (level >= GGML_LOG_LEVEL_WARN);
+    if (show_cont) fputs(text, stderr);
+}
 
 #include <cstdio>
 #include <cstring>
@@ -442,6 +458,8 @@ static int run_server(qwen3_tts::Qwen3TTS & tts, const qwen3_tts::tts_params & d
 // ---------------------------------------------------------------------------
 
 int main(int argc, char ** argv) {
+    ggml_log_set(ggml_log_filter, nullptr);
+
     std::string model_dir;
     std::string tokenizer_path;  // optional override for tokenizer GGUF
     std::string text;
