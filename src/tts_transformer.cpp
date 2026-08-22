@@ -2517,7 +2517,8 @@ bool TTSTransformer::predict_codes_autoregressive_coreml(const float * hidden,
                                                          int32_t codebook_0_token,
                                                          std::vector<int32_t> & output,
                                                          float temperature,
-                                                         int32_t top_k) {
+                                                         int32_t top_k,
+                                                         float top_p) {
     if (!use_coreml_code_predictor_ || !coreml_code_predictor_.is_loaded()) {
         error_msg_ = "CoreML code predictor is not loaded";
         return false;
@@ -2559,6 +2560,34 @@ bool TTSTransformer::predict_codes_autoregressive_coreml(const float * hidden,
                 if (logits_ptr[i] < threshold) {
                     logits_ptr[i] = -INFINITY;
                 }
+            }
+        }
+
+        if (top_p > 0.0f && top_p < 1.0f) {
+            float max_logit = *std::max_element(logits_ptr, logits_ptr + vocab_size);
+            std::vector<std::pair<float, int32_t>> sp(vocab_size);
+            double sum_p = 0.0;
+            for (int32_t i = 0; i < vocab_size; ++i) {
+                float prob = expf(logits_ptr[i] - max_logit);
+                sp[i] = {prob, i};
+                sum_p += prob;
+            }
+            for (auto & x : sp) x.first /= (float)sum_p;
+            std::sort(sp.begin(), sp.end(),
+                [](const std::pair<float, int32_t> & a, const std::pair<float, int32_t> & b) {
+                    return a.first > b.first;
+                });
+            float cumul = 0.0f;
+            int32_t keep_until = vocab_size;
+            for (int32_t k = 0; k < vocab_size; ++k) {
+                cumul += sp[k].first;
+                if (cumul >= top_p) {
+                    keep_until = k + 1;
+                    break;
+                }
+            }
+            for (int32_t k = keep_until; k < vocab_size; ++k) {
+                logits_ptr[sp[k].second] = -INFINITY;
             }
         }
 
@@ -2664,7 +2693,7 @@ bool TTSTransformer::predict_codes_autoregressive(const float * hidden, int32_t 
 #endif
 
     if (use_coreml_code_predictor_ && coreml_code_predictor_.is_loaded()) {
-        if (predict_codes_autoregressive_coreml(hidden, codebook_0_token, output, temperature, top_k)) {
+        if (predict_codes_autoregressive_coreml(hidden, codebook_0_token, output, temperature, top_k, top_p)) {
             return true;
         }
         if (skip_ggml_code_pred_layers_) {
@@ -2911,6 +2940,8 @@ struct sample_token_params {
     float   dry_base           = 1.75f;    // DRY exponential growth base
     int32_t dry_allowed_length = 2;        // min n-gram length before DRY penalises
     int32_t dry_penalty_last_n = -1;       // context window for DRY (-1 = all tokens)
+    int32_t min_new_tokens     = 0;        // ban EOS until n_generated reaches this (0 = off)
+    int32_t n_generated        = 0;        // tokens generated so far, set by caller each step
 };
 
 static int32_t sample_token(
@@ -2927,6 +2958,12 @@ static int32_t sample_token(
     // 1. Suppress range [suppress_start, V) except EOS
     for (int32_t i = p.suppress_start; i < V; ++i) {
         if (i != p.eos_id) logits[i] = -INFINITY;
+    }
+
+    // 1b. min_new_tokens: EOS banned until enough tokens were generated
+    if (p.min_new_tokens > 0 && p.n_generated < p.min_new_tokens &&
+        p.eos_id >= 0 && p.eos_id < V) {
+        logits[p.eos_id] = -INFINITY;
     }
 
     // 2. Repetition + frequency + presence penalties
@@ -3257,8 +3294,10 @@ bool TTSTransformer::generate(const int32_t * text_tokens, int32_t n_tokens,
     stp.dry_base           = ext_dry_base;
     stp.dry_allowed_length = ext_dry_allowed_length;
     stp.dry_penalty_last_n = ext_dry_penalty_last_n;
+    stp.min_new_tokens     = 2;
 
     for (int frame = 0; frame < max_len; ++frame) {
+        stp.n_generated = frame;
         int32_t next_token = sample_token(
             logits, generated_cb0_tokens,
             (ext_dry_multiplier != 0.0f) ? &cb0_token_history : nullptr,
@@ -3766,8 +3805,10 @@ bool TTSTransformer::generate_icl(
     stp.dry_base           = ext_dry_base;
     stp.dry_allowed_length = ext_dry_allowed_length;
     stp.dry_penalty_last_n = ext_dry_penalty_last_n;
+    stp.min_new_tokens     = 2;
 
     for (int frame = 0; frame < max_len; ++frame) {
+        stp.n_generated = frame;
         int32_t next_token = sample_token(
             logits, generated_cb0_tokens,
             (ext_dry_multiplier != 0.0f) ? &cb0_token_history : nullptr,
@@ -3893,8 +3934,10 @@ bool TTSTransformer::generate_from_prefill(
     stp.dry_base           = ext_dry_base;
     stp.dry_allowed_length = ext_dry_allowed_length;
     stp.dry_penalty_last_n = ext_dry_penalty_last_n;
+    stp.min_new_tokens     = 2;
 
     for (int frame = 0; frame < max_len; ++frame) {
+        stp.n_generated = frame;
         int32_t next_token = sample_token(
             logits, generated_cb0_tokens,
             (ext_dry_multiplier != 0.0f) ? &cb0_token_history : nullptr,
@@ -4137,6 +4180,7 @@ bool TTSTransformer::generate_batch(
     stp.dry_base           = ext_dry_base;
     stp.dry_allowed_length = ext_dry_allowed_length;
     stp.dry_penalty_last_n = ext_dry_penalty_last_n;
+    stp.min_new_tokens     = 2;
 
     // ---- 7. Main frame loop ----
     for (int32_t frame = 0; frame < max_len; ++frame) {
@@ -4148,6 +4192,7 @@ bool TTSTransformer::generate_batch(
             std::vector<float> & logits = cached_logits[b];
 
             // Sample CB0 with extended sampling (same gen_tokens tracking as generate())
+            stp.n_generated = frame_count[b];
             int32_t next_token = sample_token(
                 logits, batch_gen_tokens[b],
                 (ext_dry_multiplier != 0.0f) ? &batch_token_history[b] : nullptr,

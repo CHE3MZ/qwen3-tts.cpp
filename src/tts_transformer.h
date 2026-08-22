@@ -443,7 +443,8 @@ private:
     bool predict_codes_autoregressive_coreml(const float * hidden, int32_t codebook_0_token,
                                              std::vector<int32_t> & output,
                                              float temperature,
-                                             int32_t top_k);
+                                             int32_t top_k,
+                                             float top_p);
 
     // Internal graph builders
     struct ggml_cgraph * build_prefill_forward_graph(int32_t n_tokens, int32_t n_past, int32_t batch_idx = 0);
