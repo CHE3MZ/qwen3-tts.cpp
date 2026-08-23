@@ -1,6 +1,6 @@
+![alt text](docs/assets/qwen-tts-logo.png)
 # qwen3-tts.cpp
 
-![PyTorch vs qwen3-tts.cpp benchmark](./docs/benchmarks/benchmark_pytorch_vs_cpp.png)
 
 C++17 inference for [Qwen3-TTS](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base) using [GGML](https://github.com/ggml-org/ggml). Full pipeline: tokenization → speaker encoding → transformer code generation → vocoder decoding. No Python or PyTorch at runtime.
 
@@ -24,6 +24,8 @@ Forked from [predict-woo/qwen3-tts.cpp](https://github.com/predict-woo/qwen3-tts
 - **C API** — full FFI surface for integration (thread-safe)
 
 ## Benchmarks
+
+![PyTorch vs qwen3-tts.cpp benchmark](./docs/benchmarks/benchmark_pytorch_vs_cpp.png)
 
 | Pipeline | PyTorch | qwen3-tts.cpp | Speedup |
 |----------|---------|---------------|---------|
