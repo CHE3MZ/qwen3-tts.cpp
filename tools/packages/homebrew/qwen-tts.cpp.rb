@@ -1,11 +1,11 @@
 class QwenTtsCpp < Formula
   desc "C++17/GGML inference for Qwen3-TTS — voice cloning, ICL, GPU acceleration. No Python at runtime."
-  homepage "https://github.com/CHE3MZ/qwen3-tts.cpp-Fork"
+  homepage "https://github.com/CHE3MZ/qwen3-tts.cpp"
   version "1.0.0"
   license "MIT"
 
   on_macos do
-    url "https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/v#{version}/qwen-tts-macos-metal.zip"
+    url "https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/v#{version}/qwen-tts-macos-metal.zip"
     sha256 "PLACEHOLDER_SHA256_MACOS"
   end
 
@@ -35,7 +35,7 @@ class QwenTtsCpp < Formula
     ohai "  #{HOMEBREW_PREFIX}/bin/qwen-tts --help"
     ohai ""
     ohai "Model downloader:"
-    ohai "  Visit: https://github.com/CHE3MZ/qwen3-tts.cpp-Fork#model-setup"
+    ohai "  Visit: https://github.com/CHE3MZ/qwen3-tts.cpp#model-setup"
   end
 
   test do

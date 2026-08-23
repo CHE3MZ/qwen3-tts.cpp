@@ -6,9 +6,9 @@ contact_links:
     about: Download ready-to-use GGUF model files
 
   - name: Architecture & Feature Reference
-    url: https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/blob/main/docs/architecture.md
+    url: https://github.com/CHE3MZ/qwen3-tts.cpp/blob/main/docs/architecture.md
     about: Full technical reference — pipeline, all features, known limitations
 
   - name: README
-    url: https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/blob/main/README.md
+    url: https://github.com/CHE3MZ/qwen3-tts.cpp/blob/main/README.md
     about: Quickstart, CLI usage, model setup guide

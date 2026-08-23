@@ -43,16 +43,16 @@ You need the SHA256 of each zip for the manifests.
 **macOS / Linux:**
 ```bash
 # After the release is published, download and hash:
-curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.0/qwen-tts-macos-metal.zip \
+curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.0/qwen-tts-macos-metal.zip \
   | shasum -a 256
 
-curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.0/qwen-tts-windows-x64-cpu.zip \
+curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.0/qwen-tts-windows-x64-cpu.zip \
   | shasum -a 256
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$base = "https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.0"
+$base = "https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.0"
 $tmp = "$env:TEMP\hash-check.zip"
 
 Invoke-WebRequest "$base/qwen-tts-windows-x64-cpu.zip" -OutFile $tmp
@@ -87,7 +87,7 @@ Edit the manifest for the variant you're publishing — update two fields:
     "version": "release-1.1",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.1/qwen-tts-windows-x64-cpu.zip",
+            "url": "https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.1/qwen-tts-windows-x64-cpu.zip",
             "hash": "<SHA256_OF_CPU_ZIP>"
         }
     }
@@ -141,7 +141,7 @@ Edit `Formula/qwen-tts.cpp.rb` — update two fields:
 version "release-1.0"
 
 on_macos do
-  url "https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.0/qwen-tts-macos-metal.zip"
+  url "https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.0/qwen-tts-macos-metal.zip"
   sha256 "<YOUR_SHA256_HERE>"
 end
 ```
@@ -169,12 +169,12 @@ brew upgrade qwen-tts.cpp
 Once you have a release cadence, you can automate the hash updates:
 
 **Scoop:** Add a GitHub Actions workflow to `scoop-qwen-tts` using `scoop-autoupdate`
-that runs on a schedule and checks for new releases in `qwen3-tts.cpp-Fork`.
+that runs on a schedule and checks for new releases in `qwen3-tts.cpp`.
 
 **Homebrew:** Use `brew bump-formula-pr` locally after each release:
 ```bash
 brew bump-formula-pr --version release-1.1 \
-  --url https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/release-1.1/qwen-tts-macos-metal.zip \
+  --url https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/release-1.1/qwen-tts-macos-metal.zip \
   --sha256 <NEW_HASH> \
   CHE3MZ/qwen-tts.cpp/qwen-tts.cpp
 ```

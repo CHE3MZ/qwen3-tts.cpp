@@ -355,6 +355,6 @@ jobs:
             python scripts/setup_pipeline_models.py
             ```
 
-            See [README.md](https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/blob/main/README.md) for full documentation.
+            See [README.md](https://github.com/CHE3MZ/qwen3-tts.cpp/blob/main/README.md) for full documentation.
           files: |
             release-assets/**/*.zip

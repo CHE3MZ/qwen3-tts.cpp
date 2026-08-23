@@ -65,7 +65,7 @@ Homebrew's `brew bump-formula-pr` can automate this.
 3. Download the release zip SHA256 hashes:
    ```bash
    # macOS
-   curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp-Fork/releases/download/v1.0.0/qwen-tts-macos-metal.zip | sha256sum
+   curl -sL https://github.com/CHE3MZ/qwen3-tts.cpp/releases/download/v1.0.0/qwen-tts-macos-metal.zip | sha256sum
    # Windows
    certutil -hashfile qwen-tts-windows-x64-cpu.zip SHA256
    ```

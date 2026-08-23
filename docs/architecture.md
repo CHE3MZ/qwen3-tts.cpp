@@ -1,6 +1,6 @@
 # Architecture & Feature Reference
 
-Complete technical reference for `qwen3-tts.cpp-Fork`. Covers the full pipeline,
+Complete technical reference for `qwen3-tts.cpp`. Covers the full pipeline,
 all model variants, every feature, the C API surface, and internal implementation
 details for contributors and integrators.
 
@@ -26,7 +26,7 @@ details for contributors and integrators.
 
 ## Overview
 
-`qwen3-tts.cpp-Fork` is a pure C++17 inference runtime for
+`qwen3-tts.cpp` is a pure C++17 inference runtime for
 [Qwen3-TTS](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base) using
 [GGML](https://github.com/ggml-org/ggml) as the compute backend. It requires
 no Python or PyTorch at runtime.

@@ -2,7 +2,7 @@
 <!-- Last updated: 2026-06-24 -->
 
 ## Summary
-`qwen3-tts.cpp-Fork` is a C++17/GGML port of Qwen3-TTS. Three full audit sessions have been completed. All real bugs are fixed, docs are accurate, and the codebase is production-ready. The working tree has uncommitted changes from the third session — commit them.
+`qwen3-tts.cpp` is a C++17/GGML port of Qwen3-TTS. Three full audit sessions have been completed. All real bugs are fixed, docs are accurate, and the codebase is production-ready. The working tree has uncommitted changes from the third session — commit them.
 
 ## Objective
 Commit the current uncommitted changes, then the codebase is done for this audit cycle.

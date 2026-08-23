@@ -1,4 +1,4 @@
-# qwen3-tts.cpp-Fork
+# qwen3-tts.cpp
 
 ![PyTorch vs qwen3-tts.cpp benchmark](./docs/benchmarks/benchmark_pytorch_vs_cpp.png)
 
@@ -35,8 +35,8 @@ Peak RSS overhead: Basic +19%, Clone +7.7%. Measured on Apple M-series (Metal ba
 ## Quickstart
 
 ```bash
-git clone https://github.com/CHE3MZ/qwen3-tts.cpp-Fork.git
-cd qwen3-tts.cpp-Fork
+git clone https://github.com/CHE3MZ/qwen3-tts.cpp.git
+cd qwen3-tts.cpp
 git submodule update --init --recursive
 
 # Build everything (GGML + project) — auto-detects Metal on macOS
